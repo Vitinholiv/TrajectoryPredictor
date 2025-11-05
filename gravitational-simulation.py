@@ -6,7 +6,6 @@ import numpy as np
 import time
 import math
 
-# Valores Padrão dos Hiperparâmetros - Modelo de Simulação
 DEF_nodes = 96
 DEF_minSpeed = 1
 DEF_maxSpeed = 20
@@ -273,7 +272,7 @@ class TrajectoryPredictor:
             t = pred["t_final"]
             
             if not silent:
-                print(f"  Alvo {target}: v={v:.2f}, theta={(th*180/math.pi):.2f}°, t={t:.2f}s")
+                print(f"   Alvo {target}: v={v:.2f}, theta={(th*180/math.pi):.2f}°, t={t:.2f}s")
             
             traj = self.get_trajectory(v, th, t)
             label = f'Alvo {target}'
@@ -393,10 +392,10 @@ class TrajectoryPredictor:
         median_error = np.median(errors_np)
 
         print(f"Erro Quadrático Médio (MSE): {mse:.4f}")
-        print(f"Erro Médio:                 {mean_error:.4f}")
-        print(f"Erro Mediano:               {median_error:.4f}")
-        print(f"Erro Mínimo:                {min_error:.4f}")
-        print(f"Erro Máximo:                {max_error:.4f}")
+        print(f"Erro Médio:                   {mean_error:.4f}")
+        print(f"Erro Mediano:                 {median_error:.4f}")
+        print(f"Erro Mínimo:                  {min_error:.4f}")
+        print(f"Erro Máximo:                  {max_error:.4f}")
         
 solver = TrajectoryPredictor(
     identifier = selected_model['identifier'],
@@ -477,12 +476,15 @@ class Simulator:
         self.last_gif_update_bg = 0
         self.gif_frame_duration_bg = 100
         
-        self.portal_frames_entry = []
-        self.portal_frames_singularity = []
-        self.portal_frames_exit = []
-        self.current_portal_frame = 0 
-        self.last_portal_update_portal = 0
-        self.portal_frame_duration = 50
+        self.portal_image_entry = None
+        self.portal_image_singularity = None
+        self.portal_image_exit = None
+        
+        self.portal_rotation_angle = 0.0
+        self.singularity_rotation_angle = 0.0
+
+        self.portal_rotation_speed = 270.0
+        self.singularity_rotation_speed = 4860.0
         
         self.entry_exit_size = (100, 100)
         self.entry_exit_rect_size = pygame.Rect(0, 0, *self.entry_exit_size)
@@ -544,7 +546,7 @@ class Simulator:
                     self.ball_vel[0] = self.launch_speed * math.cos(self.launch_angle)
                     self.ball_vel[1] = self.launch_speed * math.sin(self.launch_angle)
                     self.ball_pos = [0.0, 0.0]
-            
+                    
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.game_state == STATE_AIMING:
                     self.is_dragging = False
@@ -554,11 +556,16 @@ class Simulator:
                     self.ball_vel[0] = self.prediction_v * math.cos(self.prediction_theta)
                     self.ball_vel[1] = self.prediction_v * math.sin(self.prediction_theta)
                     self.ball_pos = [0.0, 0.0]
-                    
-                    
+                        
     def game_logic(self):
         dt = self.clock.get_time() / 1000.0
         self.cannon_screen_pos = self.world_to_screen(0,0)
+
+        portal_rotation_delta = self.portal_rotation_speed * dt
+        singularity_rotation_delta = self.singularity_rotation_speed * dt
+        
+        self.portal_rotation_angle = (self.portal_rotation_angle + portal_rotation_delta) % 360
+        self.singularity_rotation_angle = (self.singularity_rotation_angle + singularity_rotation_delta) % 360
         
         if self.is_dragging:
             mouse_pos = pygame.mouse.get_pos()
@@ -621,7 +628,7 @@ class Simulator:
                     self.game_state = STATE_AIMING
                     self.ball_pos = [0.0, 0.0]
                     self.ball_vel = [0.0, 0.0]
-                    
+                        
     def draw(self):
         self.prediction_surface.fill((0, 0, 0, 0))
         
@@ -635,30 +642,22 @@ class Simulator:
         else:
             self.screen.fill(COLOR_BG)
         
-        if self.portal_frames_entry and self.portal_frames_singularity and self.portal_frames_exit:
-            now = pygame.time.get_ticks()
-            if now - self.last_portal_update_portal > self.portal_frame_duration:
-                self.current_portal_frame += 1 
-                self.last_portal_update_portal = now
-            
-            frame_entry = self.portal_frames_entry[self.current_portal_frame % len(self.portal_frames_entry)]
-            frame_singularity = self.portal_frames_singularity[self.current_portal_frame % len(self.portal_frames_singularity)]
-            frame_exit = self.portal_frames_exit[self.current_portal_frame % len(self.portal_frames_exit)]
+        
+        def rotate_and_blit(surface, image, center_pos, angle):
+            rotated_image = pygame.transform.rotate(image, angle)
+            new_rect = rotated_image.get_rect(center=center_pos)
+            surface.blit(rotated_image, new_rect)
 
-            if self.solver.xBody == self.solver.yBody:
-                pos_grav = self.world_to_screen(self.solver.xBody, self.solver.yBody)
-                rect_grav = self.singularity_rect_size.copy()
-                rect_grav.center = pos_grav
-                self.screen.blit(frame_singularity, rect_grav)
+        if self.portal_image_entry and self.portal_image_singularity and self.portal_image_exit:
             
+            pos_grav = self.world_to_screen(self.solver.xBody, self.solver.yBody)
+            rotate_and_blit(self.screen, self.portal_image_singularity, pos_grav, self.singularity_rotation_angle)
+
             pos_target = self.world_to_screen(self.targetX, self.targetY)
-            rect_target = self.entry_exit_rect_size.copy()
-            rect_target.center = pos_target
-            self.screen.blit(frame_exit, rect_target)
+            rotate_and_blit(self.screen, self.portal_image_exit, pos_target, -self.portal_rotation_angle)
             
-            rect_start = self.entry_exit_rect_size.copy()
-            rect_start.center = self.cannon_screen_pos
-            self.screen.blit(frame_entry, rect_start)
+            rect_start_center = self.cannon_screen_pos
+            rotate_and_blit(self.screen, self.portal_image_entry, rect_start_center, self.portal_rotation_angle)
             
         else:
             self.screen.blit(self.nebula, self.nebula_blit_pos)
@@ -688,10 +687,13 @@ class Simulator:
             ball_screen_pos = self.world_to_screen(self.ball_pos[0], self.ball_pos[1])
             pygame.draw.circle(self.screen, COLOR_BALL, ball_screen_pos, 5)
 
+        self.screen.blit(self.prediction_surface, (0, 0))
+        
         score_text_surf = self.font_small.render(f"Score: {self.score}", True, COLOR_TEXT)
         score_text_rect = score_text_surf.get_rect(topright=(self.width - 10, 10))
         self.screen.blit(score_text_surf, score_text_rect)
-        self.screen.blit(self.prediction_surface, (0, 0))
+        
+        pygame.display.flip()
     
     def initialize(self):
         pygame.init()
@@ -713,49 +715,30 @@ class Simulator:
                 for frame in gif_frames_raw:
                     mode = "RGB" if frame.shape[2] == 3 else "RGBA"
                     frame_surface = pygame.image.frombytes(frame.tobytes(), frame.shape[1::-1], mode)
-                    frame_surface = pygame.transform.scale(frame_surface, (self.width, self.height))
+                    frame_surface = pygame.transform.scale(frame_surface, (self.width, self.height)).convert()
                     self.gif_frames_bg.append(frame_surface)
             except Exception as e:
-                print(f"Erro ao carregar background.gif: {e}")
-                self.gif_frames_bg = [] 
-
-        if iio:
-            try:
-                gif_path_entry = 'res/portal.gif'
-                gif_frames_raw_entry = iio.imiter(gif_path_entry, plugin="pillow")
-                self.portal_frames_entry = []
-                for frame in gif_frames_raw_entry:
-                    mode = "RGB" if frame.shape[2] == 3 else "RGBA"
-                    frame_surface = pygame.image.frombytes(frame.tobytes(), frame.shape[1::-1], mode).convert_alpha()
-                    frame_surface = pygame.transform.scale(frame_surface, self.entry_exit_size)
-                    self.portal_frames_entry.append(frame_surface)
-                
-                if not self.portal_frames_entry:
-                    print(f"Warning: Portal GIF '{gif_path_entry}' loaded 0 frames or failed.")
-
-                gif_path_singularity = 'res/singularity.gif'
-                gif_frames_raw_singularity = iio.imiter(gif_path_singularity, plugin="pillow")
-                self.portal_frames_singularity = []
-                for frame in gif_frames_raw_singularity:
-                    mode = "RGB" if frame.shape[2] == 3 else "RGBA"
-                    frame_surface = pygame.image.frombytes(frame.tobytes(), frame.shape[1::-1], mode).convert_alpha()
-                    frame_surface = pygame.transform.scale(frame_surface, self.singularity_size)
-                    self.portal_frames_singularity.append(frame_surface)
-                    
-                gif_path_exit = 'res/red_portal.gif'
-                gif_frames_raw_exit = iio.imiter(gif_path_exit, plugin="pillow")
-                self.portal_frames_exit = []
-                for frame in gif_frames_raw_exit:
-                    mode = "RGB" if frame.shape[2] == 3 else "RGBA"
-                    frame_surface = pygame.image.frombytes(frame.tobytes(), frame.shape[1::-1], mode).convert_alpha()
-                    frame_surface = pygame.transform.scale(frame_surface, self.entry_exit_size)
-                    self.portal_frames_exit.append(frame_surface)
+                print(f"Erro ao carregar background.gif: {e}. Usando cor sólida.")
+                self.gif_frames_bg = []
             
-            except Exception as e:
-                 print(f"Erro ao carregar GIFs do portal: {e}")
-                 self.portal_frames_entry = []
-                 self.portal_frames_singularity = []
-                 self.portal_frames_exit = []
+        try:
+            img_path_entry = 'res/portal.png'
+            raw_entry = pygame.image.load(img_path_entry).convert_alpha()
+            self.portal_image_entry = pygame.transform.scale(raw_entry, self.entry_exit_size)
+
+            img_path_singularity = 'res/singularity.png'
+            raw_singularity = pygame.image.load(img_path_singularity).convert_alpha()
+            self.portal_image_singularity = pygame.transform.scale(raw_singularity, self.singularity_size)
+            
+            img_path_exit = 'res/red_portal.png'
+            raw_exit = pygame.image.load(img_path_exit).convert_alpha()
+            self.portal_image_exit = pygame.transform.scale(raw_exit, self.entry_exit_size)
+            
+        except pygame.error as e:
+            print(f"Erro ao carregar imagens estáticas do portal: {e}. As animações serão ignoradas.")
+            self.portal_image_entry = None
+            self.portal_image_singularity = None
+            self.portal_image_exit = None
 
 
         self.nebula = pygame.Surface((self.nebula_pixels * 2, self.nebula_pixels * 2), pygame.SRCALPHA)
@@ -783,7 +766,6 @@ class Simulator:
             self.handle_events()
             self.game_logic()
             self.draw()
-            pygame.display.flip()
             self.clock.tick(60)
 
 sim = Simulator(solver)
