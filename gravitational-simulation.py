@@ -326,7 +326,7 @@ class TrajectoryPredictor:
 
     def load_state(self):
         try:
-            filepath = f'./models/{self.identifier}.pth'
+            filepath = f'./models/gravitational/{self.identifier}.pth'
             savepoint = torch.load(filepath)
             savepoint['angle'] = self.angle
             
