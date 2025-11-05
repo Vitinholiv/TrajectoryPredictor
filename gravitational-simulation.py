@@ -297,7 +297,7 @@ class TrajectoryPredictor:
         plt.show()
         
     def save_state(self):
-        filepath = f'./models/{self.identifier}.pth'
+        filepath = f'./models/gravitational/{self.identifier}.pth'
         
         state = state = {
             'model_state_dict': self.model.state_dict(),
