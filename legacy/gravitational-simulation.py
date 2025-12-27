@@ -1,10 +1,15 @@
+import sys
+import time
+import math
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
-import numpy as np
-import time
-import math
+
+import pygame
+import imageio.v3 as iio
 
 DEF_nodes = 96
 DEF_minSpeed = 1
@@ -110,7 +115,7 @@ class TrajectoryPredictor:
         if self.maxSpeed <= 0:
             self.speedWeight = -self.maxSpeed
         
-        self.loss = None
+        self.loss = torch.tensor([])
         self.lossValue = torch.tensor(0.0)
         self.lossHistory = []
         self.bias = 1
@@ -263,7 +268,7 @@ class TrajectoryPredictor:
     def plot_predictions(self, predictions, silent = True, legend = False):
         plt.figure(figsize=(12, 9))
         num_preds = len(predictions)
-        colors = plt.cm.viridis(np.linspace(0, 1, num_preds))
+        colors = plt.colormaps['viridis'](np.linspace(0, 1, num_preds))
     
         for i, pred in enumerate(predictions):
             target = pred["target"]
