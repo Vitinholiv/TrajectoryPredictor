@@ -1,0 +1,43 @@
+{
+    "id": "defaultModel",
+    "lossFunc": "loss_euler",
+    "architecture": "SingleAim",
+    "optimizer": "Adam",
+    "layers": [
+        96,
+        96,
+        96
+    ],
+    "activations": [
+        "ReLU()",
+        "ReLU()",
+        "ReLU()"
+    ],
+    "limSpeed": [
+        0,
+        20
+    ],
+    "limTime": [
+        0,
+        10
+    ],
+    "limAngle": [
+        0,
+        6.283185307179586
+    ],
+    "device": "cpu",
+    "stage": 2,
+    "epochs": 20000,
+    "learningRate": 0.0001,
+    "stepsPerSimulation": 200,
+    "pointsPerLoss": 1024,
+    "maxDistance": 20,
+    "bodies": [
+        {
+            "x": 20,
+            "y": 20,
+            "mass": 110000000000000.0
+        }
+    ],
+    "bias": 1
+}
