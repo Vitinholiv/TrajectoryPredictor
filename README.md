@@ -23,7 +23,7 @@ Execute o **main.py** para um terminal interativo de opções que você pode usa
 O projeto segue uma estrutura modular e orientada a objetos.
 
 ```
-trajectory_project/
+trajectory_predictor/
 ├── main.py                     # Ponto de entrada
 ├── pyproject.toml              # Configuração de pacote e dependências oficiais
 ├── configs/
