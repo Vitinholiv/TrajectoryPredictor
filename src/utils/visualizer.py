@@ -3,7 +3,7 @@ import math
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-from typing import Union, List
+from typing import List
 from src.core.predictor import TrajectoryPredictor
 
 class Visualizer:
@@ -92,11 +92,11 @@ class Visualizer:
             self.p.hp['bias'], self.p.hp['stepsPerSimulation']
         )
 
-        print(f"MSE:                  {torch.mean(losses**2):.6f}")
-        print(f"MAE:                  {torch.mean(torch.abs(losses)):.6f}")
-        print(f"Erro Mínimo:          {torch.min(losses):.6f}")
-        print(f"Erro Máximo:          {torch.max(losses):.6f}")
-        print(f"Mediana dos Erros:    {torch.median(losses):.6f}")
+        print(f"MSE:                  {torch.mean(losses):.6f}")
+        print(f"MAE:                  {torch.mean(torch.abs(losses**0.5)):.6f}")
+        print(f"Erro Mínimo:          {torch.min(losses**0.5):.6f}")
+        print(f"Erro Máximo:          {torch.max(losses**0.5):.6f}")
+        print(f"Mediana dos Erros:    {torch.median(losses**0.5):.6f}")
 
         plt.figure(figsize=(12, 9))
         colors = plt.colormaps['viridis'](np.linspace(0, 1, num_samples))

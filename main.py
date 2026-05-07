@@ -13,12 +13,9 @@ from src.utils.simulator import Simulator
 
 if __name__ == "__main__":
     print('Inicializando...')
-    predictor = TrajectoryPredictor(hp=dummyModel)
+    predictor = TrajectoryPredictor(hp=defaultModel)
     predictor.load()
-
-    trainer = Trainer(predictor=predictor)
-    trainer.fit()
-    predictor.save()
     
-    simulator = Simulator(predictor)
-    simulator.simulate()
+    vis = Visualizer(predictor)
+    vis.plot_loss()
+    vis.predict(50)
