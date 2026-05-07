@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trajectory_predictor"
+version = "1.0.0"
+description = "Simulador de trajetórias gravitacionais com redes neurais"
+authors = [
+    { name = "Paulo Vitor Correia de Oliveira" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pygame"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
