@@ -5,7 +5,7 @@ Projeto que visa criar predições de trajetórias de um objeto em um determinad
 ## Instalação
 
 Para instalar e começar a usar o projeto:
-- Instale o **Git** e o **Python** (de preferência, na versão 3.12).
+- Instale o **Git** e o **Python** (de preferência, Python na versão 3.12).
 - Use no terminal o comando `git clone https://github.com/VitinDenoyr/TrajectoryPredictor.git .`
 - Use no terminal o comando `pip install -e .`
 
@@ -49,8 +49,8 @@ trajectory_project/
 # Previsão de Trajetória com Corpo Gravitacional usando Redes Neurais
 
 Esse projeto tem o objetivo de criar um modelo de redes neurais capaz de, dado um cenário bidimensional com:
-- Um corpo gravitacional em uma posição ($\alpha$,$\beta$) (m,m) e massa $M$ (kg);
-- Uma posição objetivo ($x$,$y$) (m,m) no espaço;
+- Um corpo gravitacional em uma posição ($\alpha,\beta$) (m,m) e massa $M$ (kg);
+- Uma posição objetivo ($x,y$) (m,m) no espaço;
 
 Queremos prever valores de:
 - Velocidade ($v$) (m/s);
@@ -58,11 +58,11 @@ Queremos prever valores de:
 - Tempo ($t$) (s);
 
 De modo que ao lançar um projétil:
-- Partindo da posição ($0$,$0$);
+- Partindo da posição ($0,0$);
 - Com um ângulo $\theta$;
 - Com velocidade inicial $v$;
 
-O projétil alcançará a posição ($x$,$y$) no tempo $t$, mesmo sob influência da gravidade do corpo gravitacional.
+O projétil alcançará a posição ($x,y$) no tempo $t$, mesmo sob influência da gravidade do corpo gravitacional.
 
 <br/><br/>
 
